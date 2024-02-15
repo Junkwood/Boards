@@ -1,4 +1,4 @@
-package com.board.yedam;
+package com.board;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
