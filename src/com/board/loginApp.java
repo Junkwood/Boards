@@ -18,7 +18,16 @@ public class loginApp {
 			int c;
 			System.out.println("1.로그인 2.회원가입 3.회원탈퇴 4.종료");
 			System.out.println("입력>>");
-			menu = scn.nextInt();scn.nextLine();
+			try {
+			menu = Integer.parseInt(scn.nextLine());
+			} catch(Exception e) {
+				System.out.println("잘못된 값을 입력하셨습니다.");
+				continue;
+			}
+			if(menu<1||menu>4) {
+				System.out.println("잘못된 값을 입력하셨습니다.");
+				continue;
+			}
 			switch(menu) {
 			case 1 : //로그인
 				System.out.println("아이디를 입력하세요>>");
@@ -32,7 +41,8 @@ public class loginApp {
 					System.out.println("비밀번호를 입력하세요>>");
 					pass = scn.nextLine();
 					if(bDAO.checkpass(id, pass)) {
-						BoardApp.BoardApp(id, pass);
+						testBoard.BoardApp(id, pass);
+//						BoardApp.BoardApp(id, pass);
 						c = 0;
 						break;
 					}else {
@@ -96,7 +106,7 @@ public class loginApp {
 					}
 				break;
 			case 4 : //종료
-				System.out.println("종료합니다.");
+				System.out.println("프로그램이 종료되었습니다.");
 				run=false;
 				scn.close();
 				}

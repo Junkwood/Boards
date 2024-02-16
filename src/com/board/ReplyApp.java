@@ -1,6 +1,7 @@
 package com.board;
 
 import java.text.SimpleDateFormat;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class ReplyApp {
@@ -25,13 +26,29 @@ public class ReplyApp {
 					continue;
 				}
 			case "delete":// delete
-				System.out.println("삭제할 댓글의 번호를 입력하세요");
-				int rn = Integer.parseInt(scn.nextLine());
-				if(!bDAO.beforeDelete(id, rn, bo_no)&&!bDAO.beforeDel(id, bo_no)) {
+				System.out.println("삭제할 댓글의 번호를 입력하세요. 취소하시려면 취소를 입력하세요");
+				int rn=-1; 
+				try {
+				rn = scn.nextInt();
+				}catch(InputMismatchException e) {
+					if(scn.nextLine().equals("취소")){
+						run = false;
+						break;
+					}else {
+						System.out.println("잘못입력하셨습니다.");
+						break;
+					}
+				}
+				if(rn<=0||rn>bDAO.reCheck(bo_no)) {
+					System.out.println("입력하신 번호에 해당하는 댓글이 없습니다.");
+					break;
+				}
+				if (!bDAO.beforeDelete(id, rn, bo_no) && !bDAO.beforeDel(id, bo_no)) {
 					System.out.println("댓글 삭제는 게시글 작성자와 댓글 작성자만 가능합니다.");
 					break;
-				};
-				if(bDAO.delRe(rn,bo_no)) {
+				}
+				;
+				if (bDAO.delRe(bo_no, rn)) {
 					System.out.println("댓글삭제완료");
 					run = false;
 					break;
@@ -39,9 +56,12 @@ public class ReplyApp {
 					System.out.println("삭제실패");
 					run = false;
 					break;
-				}				
+				}
 			case "return":// return
 			case "exit":// exit
+				run = false;
+				break;
+			case "수정":
 				run = false;
 				break;
 			default:

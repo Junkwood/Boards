@@ -8,16 +8,18 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class BoardDAO {
 	//필드
-	Connection conn;
-	PreparedStatement psmt;
-	ResultSet rs;
+	static Connection conn;
+	static PreparedStatement psmt;
+	static ResultSet rs;
 	String sql;
 	String id;
+	Scanner scn = new Scanner(System.in);
 	
-	void disconn() {
+	static void disconn() {
 		try {
 			if(conn!=null) {
 			conn.close();
@@ -45,11 +47,13 @@ public class BoardDAO {
 			rs.next();
 			
 			if(rs.getInt(1) >= 1) {
+				disconn();
 				return true;
 				}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		disconn();
 		return false;
 	}
 	//비밀번호 체크
@@ -65,11 +69,13 @@ public class BoardDAO {
 			rs.next();
 			
 			if(rs.getString(2).equals(pass)) {
+				disconn();
 				return true;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		disconn();
 		return false;
 	}
 	//이름반환식
@@ -87,6 +93,7 @@ public class BoardDAO {
 		}catch (SQLException e) {
 			e.printStackTrace();
 		}
+		disconn();
 		return id;
 	}
 	//회원가입
@@ -101,11 +108,13 @@ public class BoardDAO {
 			psmt.setString(3, user.getName());
 			int r = psmt.executeUpdate();
 			if(r>0) {
+				disconn();
 				return true;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		disconn();
 		return false;
 	}
 	//회원탈퇴
@@ -118,11 +127,13 @@ public class BoardDAO {
 			psmt.setString(1, id);
 			int r = psmt.executeUpdate();
 			if(r>0) {
+				disconn();
 				return true;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		disconn();
 		return false;
 	}
 	//게시글 등록
@@ -138,11 +149,13 @@ public class BoardDAO {
 			psmt.setString(4, bo.getId());
 			int r = psmt.executeUpdate();//처리된 건수 반환
 			if(r>0) {
+				disconn();
 				return true;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		disconn();
 		return false;
 	}
 	//게시글번호 자동생성기
@@ -156,12 +169,14 @@ public class BoardDAO {
 			psmt=conn.prepareStatement(sql);
 			rs=psmt.executeQuery();
 			if(!rs.next()) {
+				disconn();
 				return 10001;
 			}
 			i = rs.getInt(1);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		disconn();
 		return i+1;
 		
 	}
@@ -198,12 +213,10 @@ public class BoardDAO {
 				list.add(bo);
 	    	   }
 		} 
-		catch (ParseException e) {
+		catch (Exception e) {
 			e.printStackTrace();
 		}
-		catch (SQLException e) {
-			e.printStackTrace();
-		}
+		disconn();
 		return list;
 	}
 	//게시글 보기
@@ -234,6 +247,7 @@ public class BoardDAO {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		disconn();
 		return bo;
 	}
 	//전체 카운터
@@ -245,11 +259,32 @@ public class BoardDAO {
 			psmt=conn.prepareStatement(sql);
 			rs=psmt.executeQuery();
 			if(rs.next()) {
+				
 				return rs.getInt(1);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		disconn();
+		return -1;
+	}
+	//검색 카운터
+	public int getTotalCnts(String input) {
+		conn = DAO.getConn();
+		sql="select count(*) as cnt"
+				+ " From Board"
+				+ " WHERE regexp_like( upper(title) , upper(?) )";
+		try {
+			psmt=conn.prepareStatement(sql);
+			psmt.setString(1, input);
+			rs=psmt.executeQuery();
+			if(rs.next()) {
+				return rs.getInt(1);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		disconn();
 		return -1;
 	}
 	//댓글 작성
@@ -264,11 +299,13 @@ public class BoardDAO {
 			psmt.setString(3, id);
 			int r = psmt.executeUpdate();//처리된 건수 반환
 			if(r>0) {
+				disconn();
 				return true;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		disconn();
 		return false;
 	}
 	
@@ -306,6 +343,7 @@ public class BoardDAO {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		disconn();
 		return li;
 	}
 	//댓글삭제
@@ -323,7 +361,7 @@ public class BoardDAO {
 				+ "                            ON (r.id = d.id)\r\n"
 				+ "                ORDER BY rep_date)a\r\n"
 				+ "    WHERE bo_no = ?)\r\n"
-				+ "WHERE rn=?)";
+				+ "WHERE rn = ?)";
 		try {
 			psmt = conn.prepareStatement(sql);
 			psmt.setInt(1, bo_no);
@@ -331,11 +369,13 @@ public class BoardDAO {
 			int r = psmt.executeUpdate();//처리된 건수 반환
 			System.out.println(r);
 			if(r>0) {
+				disconn();
 				return true;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		disconn();
 		return false;
 	}
 	//댓삭할시 아이디 일치여부 체커
@@ -363,11 +403,13 @@ public class BoardDAO {
 			rs=psmt.executeQuery();
 			rs.next();
 			if(rs.getString("id").equals(id)) {
+				disconn();
 				return true;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		disconn();
 		return false;
 	}
 	//게시글 삭제전 체커
@@ -383,11 +425,131 @@ public class BoardDAO {
 			rs=psmt.executeQuery();
 			rs.next();
 			if(rs.getString("id").equals(id)) {
+				disconn();
 				return true;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}return false;
+		}
+		disconn();
+		return false;
 	}
-	
+	//게시글 수정
+	public boolean modText(int bo_no, String text) {
+		conn = DAO.getConn();
+		sql = "UPDATE board"
+				+ " SET text = ?, u_date = TO_CHAR(sysdate,'YY-MM-DD HH24:MI:SS') "
+				+ " WHERE bo_no = ? ";
+		
+		try {
+			psmt = conn.prepareStatement(sql);
+			psmt.setString(1, text);
+			psmt.setInt(2, bo_no);
+			int r = psmt.executeUpdate();//처리된 건수 반환
+			if(r>0) {
+				disconn();
+				return true;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		disconn();
+		return false;
+	}
+	//게시글 삭제
+	public boolean delete(int bo_no) {
+		conn = DAO.getConn();
+		sql = "DELETE board"
+				+ " WHERE bo_no = ? ";
+		
+		try {
+			psmt = conn.prepareStatement(sql);
+			psmt.setInt(1, bo_no);
+			int r = psmt.executeUpdate();//처리된 건수 반환
+			if(r>0) {
+				disconn();
+				return true;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		disconn();
+		return false;
+	}
+	public List<Board> search(String input, int page){
+		conn = DAO.getConn();
+		List<Board> list = new ArrayList<>();
+		SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+		sql="SELECT * "
+				+ "FROM(SELECT rownum rn, a.* "
+				+ "FROM (SELECT bo_no, title, name, c.id id, w_date, u_date "
+				+ "FROM board c join ids i "
+				+ "ON (c.id = i.id) "
+				+ "ORDER BY bo_no) a) b "
+				+ "WHERE b.rn>(?-1)*5 and b.rn<=(?)*5"
+				+ " AND regexp_like(upper(title), upper(?)) ";
+		try {
+			psmt=conn.prepareStatement(sql);
+			psmt.setInt(1, page);
+			psmt.setInt(2, page);
+			psmt.setString(3, input);
+			rs=psmt.executeQuery();
+		    while(rs.next()) {
+		    	Board bo = new Board();
+		    	bo.setBo_no(rs.getInt("bo_no"));
+		    	bo.setId(rs.getString("id"));
+		    	bo.setName(rs.getString("name"));
+		    	if(rs.getString("title").length()>18) {
+		    		bo.setTitle(rs.getString("title").substring(1,18)+"...");
+		    	}else {
+		    		bo.setTitle(rs.getString("title"));
+		    	}
+				bo.setW_date(sdf.parse(rs.getString("w_date")));
+				bo.setU_date(sdf.parse(rs.getString("u_date")));
+				list.add(bo);
+	    	   }
+		} 
+		catch (ParseException e) {
+			e.printStackTrace();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		disconn();
+		return list;
+	}
+	//댓글갯수 체커
+	public int reCheck(int bo_no) {
+		conn = DAO.getConn();
+		sql = "select count(*)"
+				+ " from reply"
+				+ " where bo_no = ?";
+		try {
+			psmt=conn.prepareStatement(sql);
+			psmt.setInt(1, bo_no);
+			rs=psmt.executeQuery();
+			rs.next();
+			return rs.getInt(1);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return -1;
+	}
+	public boolean isExist(int page) {
+		conn = DAO.getConn();
+		sql = "select bo_no "
+				+ " from board"
+				+ " where bo_no = ?";
+		try {
+			psmt=conn.prepareStatement(sql);
+			psmt.setInt(1, page);
+			rs=psmt.executeQuery();
+			return rs.next();
+			
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
 }
