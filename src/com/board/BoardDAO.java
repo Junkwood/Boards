@@ -37,9 +37,9 @@ public class BoardDAO {
 	//중복체크
 	public boolean check(String id) {
 		conn=DAO.getConn();
-		sql="SELECT count(*) "
-				+ "FROM IDS "
-				+ "WHERE id = ? ";
+		sql="select count(*)\r\n"
+				+ "from ids\r\n"
+				+ "where id like ?";
 		try {
 			psmt=conn.prepareStatement(sql);
 			psmt.setString(1, id);
@@ -61,7 +61,7 @@ public class BoardDAO {
 		conn=DAO.getConn();
 		sql="SELECT id, password "
 				+ "FROM IDS "
-				+ "WHERE ID = ?";
+				+ "WHERE ID Like ?";
 		try {
 			psmt=conn.prepareStatement(sql);
 			psmt.setString(1, id);
@@ -83,7 +83,7 @@ public class BoardDAO {
 		conn=DAO.getConn();
 		sql="SELECT id, name "
 				+ "FROM IDS "
-				+ "WHERE ID = ?";
+				+ "WHERE ID like ?";
 		try {
 			psmt=conn.prepareStatement(sql);
 			psmt.setString(1, id);
@@ -121,7 +121,7 @@ public class BoardDAO {
 	public boolean delID(String id) {
 		conn = DAO.getConn();
 		sql = "DELETE ids "
-				+ "WHERE id = ? ";
+				+ "WHERE id like ? ";
 		try {
 			psmt=conn.prepareStatement(sql);
 			psmt.setString(1, id);
@@ -139,14 +139,19 @@ public class BoardDAO {
 	//게시글 등록
 	public boolean submit(Board bo) {
 		conn = DAO.getConn();
-		sql = "INSERT INTO board(bo_no, title, text, id, w_date, u_date) "
-				+ "VALUES(?, ?, ?, ?, TO_CHAR(sysdate,'YY-MM-DD HH24:MI:SS'), TO_CHAR(sysdate,'YY-MM-DD HH24:MI:SS'))";
+		sql = "INSERT INTO board(bo_no, title, text, id, w_date, u_date, category_id) "
+				+ "VALUES(?, ?, ?, ?, TO_CHAR(sysdate,'YY-MM-DD HH24:MI:SS'), TO_CHAR(sysdate,'YY-MM-DD HH24:MI:SS'), nvl(?,1))";
 		try {
 			psmt = conn.prepareStatement(sql);
 			psmt.setInt(1, bo.getBo_no());
 			psmt.setString(2, bo.getTitle());
 			psmt.setString(3, bo.getText());
 			psmt.setString(4, bo.getId());
+			if(bo.getCat()==0) {
+				psmt.setString(5, null);
+			}else {
+				psmt.setInt(5, bo.getCat());
+			}
 			int r = psmt.executeUpdate();//처리된 건수 반환
 			if(r>0) {
 				disconn();
@@ -287,6 +292,25 @@ public class BoardDAO {
 		disconn();
 		return -1;
 	}
+	//목록카운터
+		public int getTotalCntc(int cat_id) {
+			conn = DAO.getConn();
+			sql="select count(*) as cnt"
+					+ " From Board"
+					+ " WHERE category_id = ? ";
+			try {
+				psmt=conn.prepareStatement(sql);
+				psmt.setInt(1, cat_id);
+				rs=psmt.executeQuery();
+				if(rs.next()) {
+					return rs.getInt(1);
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			disconn();
+			return -1;
+		}
 	//댓글 작성
 	public boolean subRe(int bo_no, String rep_text, String id) {
 		conn = DAO.getConn();
@@ -480,19 +504,19 @@ public class BoardDAO {
 		conn = DAO.getConn();
 		List<Board> list = new ArrayList<>();
 		SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
-		sql="SELECT * "
-				+ "FROM(SELECT rownum rn, a.* "
-				+ "FROM (SELECT bo_no, title, name, c.id id, w_date, u_date "
-				+ "FROM board c join ids i "
-				+ "ON (c.id = i.id) "
-				+ "ORDER BY bo_no) a) b "
-				+ "WHERE b.rn>(?-1)*5 and b.rn<=(?)*5"
-				+ " AND regexp_like(upper(title), upper(?)) ";
+		sql="SELECT * \r\n"
+				+ "FROM(SELECT rownum rn, a.*\r\n"
+				+ "     FROM (SELECT bo_no, title, name, c.id id, w_date, u_date \r\n"
+				+ "           FROM board c join ids i \r\n"
+				+ "                         ON (c.id = i.id)\r\n"
+				+ "            where regexp_like(upper(title), upper(?))\r\n"
+				+ "            ORDER BY bo_no) a) b\r\n"
+				+ "            WHERE b.rn>(?-1)*5 and b.rn<=(?)*5";
 		try {
 			psmt=conn.prepareStatement(sql);
-			psmt.setInt(1, page);
+			psmt.setString(1, input);
 			psmt.setInt(2, page);
-			psmt.setString(3, input);
+			psmt.setInt(3, page);
 			rs=psmt.executeQuery();
 		    while(rs.next()) {
 		    	Board bo = new Board();
@@ -551,5 +575,171 @@ public class BoardDAO {
 			e.printStackTrace();
 		}
 		return false;
+	}
+	//관리자 체커
+	public boolean adminChecker(String id) {
+		conn = DAO.getConn();
+		int admin=0;
+		sql = "SELECT admin "
+				+ "FROM ids "
+				+ "WHERE id like ?";
+		
+		try {
+			psmt=conn.prepareStatement(sql);
+			psmt.setString(1, id);
+			rs=psmt.executeQuery();
+			rs.next();
+			admin = rs.getInt(1);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		if (admin == 1) {
+			return true;
+		}else {
+			return false;
+		}
+	}
+	//카테고리 리스트업
+	public List<Category> getCatlist(){
+		conn = DAO.getConn();
+		List<Category> list = new ArrayList<>();
+		sql="SELECT * \r\n"
+				+ "FROM (SELECT rownum rn, a.*\r\n"
+				+ "     FROM (SELECT category_id, category_name \r\n"
+				+ "           FROM cat \r\n"
+				+ "            ORDER BY category_id) a)\r\n";
+		try {
+			psmt=conn.prepareStatement(sql);
+			rs=psmt.executeQuery();
+		    while(rs.next()) {
+		    	Category cat = new Category();
+		    	cat.setCat_id(rs.getInt("rn"));
+		    	cat.setCat_name(rs.getString("category_name"));
+		    	list.add(cat);
+	    	   }
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		disconn();
+		return list;
+	}
+	//목록 별 리스트.
+	public List<Board> catList(int cat_id, int page){
+		conn = DAO.getConn();
+		List<Board> list = new ArrayList<>();
+		SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+		sql="SELEcT *\r\n"
+				+ "FROM (SELECT rownum rn, a.*\r\n"
+				+ "      FROM (SELECT bo_no, title, name, d.id, w_date, u_date\r\n"
+				+ "            FROM board d join ids i\r\n"
+				+ "                          ON (d.id = i.id)\r\n"
+				+ "            where category_id = ?\r\n"
+				+ "            order by bo_no) a) b\r\n"
+				+ "WherE b.rn>(?-1)*5 and b.rn<=(?)*5";
+		try {
+			psmt=conn.prepareStatement(sql);
+			psmt.setInt(1, cat_id);
+			psmt.setInt(2, page);
+			psmt.setInt(3, page);
+			rs=psmt.executeQuery();
+		    while(rs.next()) {
+		    	Board bo = new Board();
+		    	bo.setBo_no(rs.getInt("bo_no"));
+		    	bo.setId(rs.getString("id"));
+		    	bo.setName(rs.getString("name"));
+		    	if(rs.getString("title").length()>18) {
+		    		bo.setTitle(rs.getString("title").substring(1,18)+"...");
+		    	}else {
+		    		bo.setTitle(rs.getString("title"));
+		    	}
+				bo.setW_date(sdf.parse(rs.getString("w_date")));
+				bo.setU_date(sdf.parse(rs.getString("u_date")));
+				list.add(bo);
+	    	   }
+		} 
+		catch (ParseException e) {
+			e.printStackTrace();
+		}
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		disconn();
+		return list;
+	}
+	//rownum catname 변환기
+	public String cat_name(int cat_id) {
+		conn = DAO.getConn();
+		String cat_name=null;
+		sql="SELECT * \r\n"
+				+ "				FROM (SELECT rownum rn, a.*\r\n"
+				+ "				     FROM (SELECT category_id, category_name \r\n"
+				+ "				           FROM cat \r\n"
+				+ "				            ORDER BY category_id) a)\r\n"
+				+ "				WHERE rn = ?";
+		try {
+			psmt=conn.prepareStatement(sql);
+			psmt.setInt(1, cat_id);
+			rs=psmt.executeQuery();
+			rs.next();
+	    	cat_name = rs.getString("category_name");
+		} 
+		catch (SQLException e) {
+			e.printStackTrace();
+		}
+		disconn();
+		return cat_name;
+	}
+	//카테고리 생성기
+	public boolean catGen(String make, int no) {
+		conn = DAO.getConn();
+		sql="insert into cat(category_id,category_name) "
+				+ "values(?,?)";
+		
+		try {
+			psmt=conn.prepareStatement(sql);
+			psmt.setInt(1, no);
+			psmt.setString(2, make);
+			rs=psmt.executeQuery();
+			return rs.next();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	//카테고리 넘버 생성기
+	public int catnoGen() {
+		conn = DAO.getConn();
+		sql="SELECT category_id\r\n"
+				+ "FROM cat\r\n"
+				+ "order by category_id desc";
+		
+		try {
+			psmt=conn.prepareStatement(sql);
+			rs=psmt.executeQuery();
+			rs.next();
+			return rs.getInt(1)+1;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return -1;
+	}
+	public int getCatid(int no) {
+		conn = DAO.getConn();
+		sql="SELECT * \r\n"
+				+ "FROM (SELECT rownum rn, a.*\r\n"
+				+ "     FROM (SELECT category_id, category_name \r\n"
+				+ "           FROM cat \r\n"
+				+ "            ORDER BY category_id) a) "
+				+ "WHERE rn = ?\r\n";
+		try {
+			psmt=conn.prepareStatement(sql);
+			psmt.setInt(1, no);
+			rs=psmt.executeQuery();
+			rs.next();
+			return rs.getInt("category_id");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}return -1;
 	}
 }

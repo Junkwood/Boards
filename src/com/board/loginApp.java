@@ -41,8 +41,8 @@ public class loginApp {
 					System.out.println("비밀번호를 입력하세요>>");
 					pass = scn.nextLine();
 					if(bDAO.checkpass(id, pass)) {
-						testBoard.BoardApp(id, pass);
-//						BoardApp.BoardApp(id, pass);
+						name=bDAO.namegiver(id);
+						BoardApp.BoardApp(id, pass);
 						c = 0;
 						break;
 					}else {

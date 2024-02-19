@@ -18,12 +18,21 @@ public class Board {
 	private Date u_date;//수정일
 	private String id;
 	private String name;
+	private int cat;
 	public Board(int bo_no, String title, String text, String id) {
 		super();
 		this.bo_no = bo_no;
 		this.title = title;
 		this.text = text;
 		this.id = id;
+	}
+	public Board(int bo_no, String title, String text, String id,int cat) {
+		super();
+		this.bo_no = bo_no;
+		this.title = title;
+		this.text = text;
+		this.id = id;
+		this.cat = cat;
 	}
 	
 	

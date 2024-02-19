@@ -1,12 +1,10 @@
 package com.board;
 
-import java.text.SimpleDateFormat;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class ReplyApp {
 	public static void ReplyApp(String id, String pass, String enter, int bo_no) {
-		SimpleDateFormat sdf = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
 		BoardDAO bDAO = new BoardDAO();
 		Scanner scn = new Scanner(System.in);
 		boolean run = true;
@@ -16,7 +14,8 @@ public class ReplyApp {
 			case "reply":// 댓글작성
 				System.out.println("댓글을 입력하세요");
 				System.out.println(">>>");
-				String reply = scn.nextLine();
+				String reply;
+				reply = scn.nextLine();
 				if (bDAO.subRe(bo_no, reply, id)) {
 					System.out.println("댓글등록완료");
 					run = false;
@@ -29,7 +28,7 @@ public class ReplyApp {
 				System.out.println("삭제할 댓글의 번호를 입력하세요. 취소하시려면 취소를 입력하세요");
 				int rn=-1; 
 				try {
-				rn = scn.nextInt();
+				rn = scn.nextInt();scn.nextLine();
 				}catch(InputMismatchException e) {
 					if(scn.nextLine().equals("취소")){
 						run = false;
@@ -43,8 +42,8 @@ public class ReplyApp {
 					System.out.println("입력하신 번호에 해당하는 댓글이 없습니다.");
 					break;
 				}
-				if (!bDAO.beforeDelete(id, rn, bo_no) && !bDAO.beforeDel(id, bo_no)) {
-					System.out.println("댓글 삭제는 게시글 작성자와 댓글 작성자만 가능합니다.");
+				if (!bDAO.beforeDelete(id, rn, bo_no) && !bDAO.beforeDel(id, bo_no) && !bDAO.adminChecker(id)) {
+					System.out.println("댓글 삭제는 관리자, 게시글 작성자와 댓글 작성자만 가능합니다.");
 					break;
 				}
 				;
@@ -58,6 +57,7 @@ public class ReplyApp {
 					break;
 				}
 			case "return":// return
+				break;
 			case "exit":// exit
 				run = false;
 				break;
