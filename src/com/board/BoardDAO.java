@@ -98,6 +98,7 @@ public class BoardDAO {
 	}
 	//회원가입
 	public boolean regiID(IDs user) {
+		
 		conn = DAO.getConn();
 		sql= "INSERT INTO IDS (id, password, name) "
 				+ "VALUES(?,?,?)";
@@ -391,7 +392,6 @@ public class BoardDAO {
 			psmt.setInt(1, bo_no);
 			psmt.setInt(2, rn);
 			int r = psmt.executeUpdate();//처리된 건수 반환
-			System.out.println(r);
 			if(r>0) {
 				disconn();
 				return true;

@@ -63,10 +63,22 @@ public class loginApp {
 					System.out.println("이미 존재하는 아이디입니다. 다시 입력해주세요.");
 					continue;
 				}
+				if(id.equals("")) {
+					System.out.println("입력된 값이 없습니다.");
+					continue;
+				}
 				System.out.println("등록하실 비밀번호를 입력하세요>>");
 				pass = scn.nextLine();
+				if(pass.equals("")) {
+					System.out.println("입력된 값이 없습니다.");
+					continue;
+				}
 				System.out.println("등록하실 이름 또는 닉네임을 입력하세요>>");
 				name = scn.nextLine();
+				if(name.equals("")) {
+					System.out.println("입력된 값이 없습니다.");
+					continue;
+				}
 				IDs user = new IDs(id,pass,name);
 				if(bDAO.regiID(user)) {
 					System.out.println("회원가입완료");

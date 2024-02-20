@@ -141,34 +141,36 @@ public class BoardApp {
 					System.out.println("삭제할 게시글 번호를 입력하세요.");
 					System.out.println(">>");
 					page=scn.nextInt();scn.nextLine();
-					if (!bDAO.beforeDel(id, page)||!bDAO.adminChecker(id)) {
+					if (bDAO.beforeDel(id, page)||bDAO.adminChecker(id)) {
+						if(bDAO.delete(page)) {
+							System.out.println("삭제완료");
+							page=1;
+							continue;
+						}else {
+							System.out.println("삭제실패");
+							page=1;
+							continue;
+						}
+					}else{
 						System.out.println("게시글 삭제는 관리자 또는 작성자만 가능합니다.");
 						System.out.println(name + "님은 관리자 또는 작성자가 아닙니다.");
 						continue;
 					}
-					if(bDAO.delete(page)) {
-						System.out.println("삭제완료");
-						page=1;
-						continue;
-					}else {
-						System.out.println("삭제실패");
-						page=1;
-						continue;
-					}
-					
 				case "목록":
-					List<Category> clist = bDAO.getCatlist();
 					page = 1;
 					int cat_id = -1;
 					String make = null;
 					while (true) {
+						List<Category> clist = bDAO.getCatlist();
 						System.out.println("게시판 종류");
 						for (Category cat : clist) {
 							System.out.println(cat.getCat_id() + ". " + cat.getCat_name());
 						}
 						System.out.println("번호를 입력하시면 해당 게시판으로 이동합니다.");
+						System.out.println("이전메뉴로 돌아가시려면 return을 입력하세요.");
 						if (admin) {
 							System.out.println("카테고리를 생성하시려면 \"생성\"을 입력하세요.(관리자 전용)");
+							
 						}
 						System.out.println(">>");
 						try {
@@ -178,7 +180,11 @@ public class BoardApp {
 							make = scn.nextLine();
 						}
 						if (cat_id < 0) {
-							if (make.equals("생성")) {
+							if(make.equals("return")) {
+								enter=null;
+								break;
+							}
+							if (make.equals("생성")&&admin) {
 								System.out.println("생성할 카테고리명을 입력하세요.");
 								System.out.println(">>>");
 								make = scn.nextLine();
@@ -190,7 +196,7 @@ public class BoardApp {
 									System.out.println("카테고리생성 실패");
 									continue;
 								}
-							} else {
+							}else {
 								System.out.println("잘못입력하셨습니다.");
 								continue;
 							}
@@ -270,6 +276,9 @@ public class BoardApp {
 								continue;
 							}
 						}
+						if(enter.equals("return")) {
+							continue;
+						}
 						break;
 					}
 					break;
@@ -280,6 +289,10 @@ public class BoardApp {
 				case "종료":
 					System.out.println(name + "님 프로그램이 종료되었습니다.");
 					System.exit(0);
+				default : 
+					System.out.println("잘못입력 하셨습니다.");
+					page=1;
+					continue;
 				}
 			} else if (page >= 10001) {
 				if (!bDAO.isExist(page)) {
@@ -287,8 +300,8 @@ public class BoardApp {
 					page = 1;
 					continue;
 				};
-				Board bo = bDAO.getText(page);
 				while (true) {
+					Board bo = bDAO.getText(page);
 					int lc;
 					System.out.println(
 							"===================================================================================");
@@ -341,35 +354,34 @@ public class BoardApp {
 					scn.reset();
 					enter = scn.nextLine();
 					if (enter.equals("수정")) {
-						if (!bDAO.beforeDel(id, page)||!bDAO.adminChecker(id)) {
+						if (bDAO.beforeDel(id, page)||bDAO.adminChecker(id)) {
+							System.out.println("내용을 작성해주세요.");
+							text = scn.nextLine();
+							if (bDAO.modText(page, text)) {
+								System.out.println("게시글 수정완료.");
+								continue;
+							} else {
+								System.out.println("게시글 수정실패.");
+								continue;
+							}
+						}else {
 							System.out.println("게시글 수정은 관리자 또는 작성자만 가능합니다.");
 							System.out.println(name + "님은 관리자 또는 작성자가 아닙니다.");
 							continue;
 						}
-						System.out.println("내용을 작성해주세요.");
-						text = scn.nextLine();
-						if (bDAO.modText(page, text)) {
-							System.out.println("게시글 수정완료.");
-							page = 1;
-							continue;
-						} else {
-							System.out.println("게시글 수정실패.");
-							page = 1;
-							continue;
-						}
 					} else if (enter.equals("삭제")) {
-						if (!bDAO.beforeDel(id, page)||!bDAO.adminChecker(id)) {
+						if (bDAO.beforeDel(id, page)||bDAO.adminChecker(id)) {
+							if (bDAO.delete(page)) {
+								System.out.println("게시글 삭제완료.");
+								page = 1;
+								break;
+							} else {
+								System.out.println("게시글 삭제실패.");
+								continue;
+							}
+						}else {
 							System.out.println("게시글 삭제는 관리자 또는 작성자만 가능합니다.");
 							System.out.println(name + "님은 관리자 또는 작성자가 아닙니다.");
-							continue;
-						}
-						if (bDAO.delete(page)) {
-							System.out.println("게시글 삭제완료.");
-							page = 1;
-							continue;
-						} else {
-							System.out.println("게시글 삭제실패.");
-							page = 1;
 							continue;
 						}
 					} else if (enter.equals("reply")||enter.equals("delete")) {
@@ -406,8 +418,8 @@ public class BoardApp {
 			return;
 		}
 		;
-		Board bo = bDAO.getText(page);
 		while (true) {
+			Board bo = bDAO.getText(page);
 			int lc;
 			System.out.println("===================================================================================");
 			System.out.println("제목: " + bo.getTitle());
@@ -452,35 +464,34 @@ public class BoardApp {
 			System.out.println("이전단계로 돌아가려면 return을 입력하세요. ");
 			enter = scn.nextLine();
 			if (enter.equals("수정")) {
-				if (!bDAO.beforeDel(id, page)) {
+				if (bDAO.beforeDel(id, page)||bDAO.adminChecker(id)) {
+					System.out.println("내용을 작성해주세요.");
+					text = scn.nextLine();
+					if (bDAO.modText(page, text)) {
+						System.out.println("게시글 수정완료.");
+						continue;
+					} else {
+						System.out.println("게시글 수정실패.");
+						continue;
+					}
+				}else {
 					System.out.println("게시글 수정은 관리자 또는 작성자만 가능합니다.");
 					System.out.println(name + "님은 관리자 또는 작성자가 아닙니다.");
 					continue;
 				}
-				System.out.println("내용을 작성해주세요.");
-				text = scn.nextLine();
-				if (bDAO.modText(page, text)) {
-					System.out.println("게시글 수정완료.");
-					page = 1;
-					continue;
-				} else {
-					System.out.println("게시글 수정실패.");
-					page = 1;
-					continue;
-				}
 			} else if (enter.equals("삭제")) {
-				if (!bDAO.beforeDel(id, page)) {
+				if (bDAO.beforeDel(id, page)||bDAO.adminChecker(id)) {
+					if (bDAO.delete(page)) {
+						System.out.println("게시글 삭제완료.");
+						page = 1;
+						break;
+					} else {
+						System.out.println("게시글 삭제실패.");
+						continue;
+					}
+				}else {
 					System.out.println("게시글 삭제는 관리자 또는 작성자만 가능합니다.");
 					System.out.println(name + "님은 관리자 또는 작성자가 아닙니다.");
-					continue;
-				}
-				if (bDAO.delete(page)) {
-					System.out.println("게시글 삭제완료.");
-					page = 1;
-					continue;
-				} else {
-					System.out.println("게시글 삭제실패.");
-					page = 1;
 					continue;
 				}
 			} else if (enter.equals("reply")||enter.equals("delete")) {
