@@ -170,6 +170,7 @@ public class BoardApp {
 						System.out.println("이전메뉴로 돌아가시려면 return을 입력하세요.");
 						if (admin) {
 							System.out.println("카테고리를 생성하시려면 \"생성\"을 입력하세요.(관리자 전용)");
+							System.out.println("카테고리를 삭제하시려면 \"삭제\"를 입력하세요.(관리자 전용)");
 							
 						}
 						System.out.println(">>");
@@ -196,7 +197,21 @@ public class BoardApp {
 									System.out.println("카테고리생성 실패");
 									continue;
 								}
-							}else {
+							}else if(make.equals("삭제")&&admin) {
+								System.out.println("삭제할 번호를 입력하세요.");
+								System.out.println(">>>");
+								int no2=scn.nextInt();
+								scn.nextLine();
+								String cat_name = bDAO.cat_name(no2);
+								if(bDAO.delCat(cat_name)) {
+									System.out.println("삭제 완료");
+									continue;
+								}else {
+									System.out.println("삭제 실패");
+									continue;
+								}
+							}
+							else {
 								System.out.println("잘못입력하셨습니다.");
 								continue;
 							}

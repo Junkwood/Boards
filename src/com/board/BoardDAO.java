@@ -742,4 +742,17 @@ public class BoardDAO {
 			e.printStackTrace();
 		}return -1;
 	}
+	public boolean delCat(String cat_name) {
+		conn = DAO.getConn();
+		sql="Delete cat "
+				+ "WHERE category_name like ?";
+		try {
+			psmt=conn.prepareStatement(sql);
+			psmt.setString(1, cat_name);
+			rs=psmt.executeQuery();
+			return rs.next();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}return false;
+	}
 }
