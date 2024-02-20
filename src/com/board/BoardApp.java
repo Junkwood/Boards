@@ -292,6 +292,7 @@ public class BoardApp {
 							}
 						}
 						if(enter.equals("return")) {
+							cat_id=-1;
 							continue;
 						}
 						break;
